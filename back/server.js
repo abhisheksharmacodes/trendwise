@@ -71,9 +71,9 @@ app.use('/api/trends', trendRoutes);
 // Function to generate only 1 article from trends per run, with quota error handling
 async function generateArticlesFromTrends() {
   try {
-    console.log('[ARTICLE GENERATION] Fetching trending topics and generating one article...');
-    const trends = await trendingService.getAllTrends();
-    console.log(`[ARTICLE GENERATION] Found ${trends.length} trending topics`);
+    console.log('[ARTICLE GENERATION] Fetching fresh trending topics and generating one article...');
+    const trends = await trendingService.getAllTrends(true); // Force refresh
+    console.log(`[ARTICLE GENERATION] Found ${trends.length} fresh trending topics`);
     let generatedCount = 0;
     for (const trend of trends) {
       if (generatedCount >= 1) break; // Only 1 article per run

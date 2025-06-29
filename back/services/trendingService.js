@@ -4,6 +4,9 @@ const axios = require('axios');
 class TrendingService {
   constructor() {
     this.browser = null;
+    this.lastFetchTime = null;
+    this.cacheDuration = 30 * 60 * 1000; // 30 minutes cache
+    this.cachedTrends = null;
   }
 
   async initBrowser() {
@@ -17,7 +20,9 @@ class TrendingService {
           '--disable-accelerated-2d-canvas',
           '--no-first-run',
           '--no-zygote',
-          '--disable-gpu'
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor'
         ]
       });
     }
@@ -33,156 +38,210 @@ class TrendingService {
 
   async getGoogleTrends() {
     try {
+      console.log('[TRENDING] Fetching Google Trends...');
       const browser = await this.initBrowser();
       const page = await browser.newPage();
       
       // Set user agent to avoid detection
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
       
-      // Navigate to Google Trends
-      await page.goto('https://trends.google.com/trends/trendingsearches/daily?geo=US', {
+      // Set viewport
+      await page.setViewport({ width: 1920, height: 1080 });
+      
+      // Navigate to Google Trends with cache-busting
+      const timestamp = Date.now();
+      await page.goto(`https://trends.google.com/trends/trendingsearches/daily?geo=IN`, {
         waitUntil: 'networkidle2',
         timeout: 30000
       });
 
-      // Wait for content to load
-      await page.waitForSelector('.feed-list-wrapper', { timeout: 10000 });
+      // Wait for content to load with multiple selectors
+      await page.waitForFunction(() => {
+        const selectors = [
+          '.mZ3RIc',
+          '[data-testid="trending-searches"]',
+          '.trending-searches'
+        ];
+        return selectors.some(selector => document.querySelector(selector));
+      }, { timeout: 15000 });
 
-      // Extract trending topics
+      // Try extracting from .mZ3RIc first
+      let topics = await page.$$eval('.mZ3RIc', els => els.map(el => el.textContent.trim()).filter(Boolean));
+      console.log(`[TRENDING] .mZ3RIc found: ${topics.length} elements`);
+      if (topics.length > 0) {
+        topics.forEach((t, i) => console.log(`[TRENDING] .mZ3RIc[${i}]:`, t));
+        // Return as trend objects
+        const trends = topics.slice(0, 15).map(title => ({
+          title,
+          traffic: 'Unknown',
+          source: 'google_trends',
+          timestamp: new Date().toISOString()
+        }));
+        await page.close();
+        console.log(`[TRENDING] ✅ Google Trends fetched: ${trends.length} topics (from .mZ3RIc)`);
+        return trends;
+      }
+
+      // Fallback: Extract trending topics with improved selectors
       const trends = await page.evaluate(() => {
-        const trendElements = document.querySelectorAll('.feed-list-wrapper .feed-item');
+        const selectors = [
+          '.feed-list-wrapper .feed-item',
+          '[data-testid="trending-searches"] .trend-item',
+          '.trending-searches .trend-item',
+          '.trending-searches-item'
+        ];
+        let trendElements = [];
+        for (const selector of selectors) {
+          trendElements = document.querySelectorAll(selector);
+          if (trendElements.length > 0) break;
+        }
         const trends = [];
-        
         trendElements.forEach((element, index) => {
-          if (index < 10) { // Limit to top 10
-            const titleElement = element.querySelector('.title');
-            const trafficElement = element.querySelector('.search-count-title');
-            
-            if (titleElement) {
+          if (index < 15) {
+            const titleSelectors = [
+              '.title',
+              '.trend-title',
+              'h3',
+              '.trending-title',
+              '[data-testid="trend-title"]'
+            ];
+            const trafficSelectors = [
+              '.search-count-title',
+              '.traffic-count',
+              '.trend-traffic',
+              '[data-testid="traffic-count"]'
+            ];
+            let title = '';
+            let traffic = 'Unknown';
+            for (const selector of titleSelectors) {
+              const titleElement = element.querySelector(selector);
+              if (titleElement) {
+                title = titleElement.textContent.trim();
+                break;
+              }
+            }
+            for (const selector of trafficSelectors) {
+              const trafficElement = element.querySelector(selector);
+              if (trafficElement) {
+                traffic = trafficElement.textContent.trim();
+                break;
+              }
+            }
+            if (title) {
               trends.push({
-                title: titleElement.textContent.trim(),
-                traffic: trafficElement ? trafficElement.textContent.trim() : 'Unknown',
-                source: 'google_trends'
+                title: title,
+                traffic: traffic,
+                source: 'google_trends',
+                timestamp: new Date().toISOString()
               });
             }
           }
         });
-        
         return trends;
       });
-
+      console.log(`[TRENDING] Fallback selectors found: ${trends.length} topics`);
       await page.close();
+      console.log(`[TRENDING] ✅ Google Trends fetched: ${trends.length} topics`);
       return trends;
     } catch (error) {
-      console.error('Error fetching Google Trends:', error);
-      // Fallback to mock data
-      return this.getMockTrends();
+      console.error('[TRENDING] ❌ Error fetching Google Trends:', error.message);
+      return [];
     }
   }
 
   async getTwitterTrends() {
     try {
-      // Note: Twitter API requires authentication
-      // This is a simplified version that scrapes Twitter trends
+      console.log('[TRENDING] Fetching Twitter Trends...');
       const browser = await this.initBrowser();
       const page = await browser.newPage();
       
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+      await page.setViewport({ width: 1920, height: 1080 });
       
-      await page.goto('https://twitter.com/explore/tabs/trending', {
-        waitUntil: 'networkidle2',
-        timeout: 30000
-      });
+      // Try extracting from .r-bcqeeo first
+      let topics = await page.$$eval('.r-poiln3', els => els.map(el => el.textContent.trim()).filter(Boolean));
+      console.log(`[TRENDING] .r-bcqeeo found: ${topics.length} elements`);
+      if (topics.length > 0) {
+        topics.forEach((t, i) => console.log(`[TRENDING] .r-bcqeeo[${i}]:`, t));
+        // Return as trend objects
+        const trends = topics.slice(0, 10).map(title => ({
+          title,
+          traffic: 'Trending on Twitter',
+          source: 'twitter',
+          timestamp: new Date().toISOString()
+        }));
+        await page.close();
+        console.log(`[TRENDING] ✅ Twitter Trends fetched: ${trends.length} topics (from .r-bcqeeo)`);
+        return trends;
+      }
 
-      // Wait for trends to load
-      await page.waitForSelector('[data-testid="trend"]', { timeout: 10000 });
-
-      const trends = await page.evaluate(() => {
-        const trendElements = document.querySelectorAll('[data-testid="trend"]');
+      // Fallback: Extract trending topics with improved selectors
+      let trends = await page.evaluate(() => {
+        const selectors = [
+          '[data-testid="trend"]',
+          '.trend-item',
+          '[data-testid="trending"]',
+          '.trending-topic'
+        ];
+        let trendElements = [];
+        for (const selector of selectors) {
+          trendElements = document.querySelectorAll(selector);
+          if (trendElements.length > 0) break;
+        }
         const trends = [];
-        
         trendElements.forEach((element, index) => {
           if (index < 10) {
-            const textElement = element.querySelector('[data-testid="trend"] span');
-            if (textElement) {
+            const textSelectors = [
+              '[data-testid="trend"] span',
+              '.trend-text',
+              '.trending-text',
+              'span',
+              'div'
+            ];
+            let title = '';
+            for (const selector of textSelectors) {
+              const textElement = element.querySelector(selector);
+              if (textElement && textElement.textContent.trim()) {
+                title = textElement.textContent.trim();
+                break;
+              }
+            }
+            if (title) {
               trends.push({
-                title: textElement.textContent.trim(),
+                title: title,
                 traffic: 'Trending on Twitter',
-                source: 'twitter'
+                source: 'twitter',
+                timestamp: new Date().toISOString()
               });
             }
           }
         });
-        
         return trends;
       });
-
+      console.log(`[TRENDING] Fallback selectors found: ${trends.length} topics`);
       await page.close();
+      console.log(`[TRENDING] ✅ Twitter Trends fetched: ${trends.length} topics`);
       return trends;
     } catch (error) {
-      console.error('Error fetching Twitter Trends:', error);
-      return this.getMockTrends();
+      console.error('[TRENDING] ❌ Error fetching Twitter Trends:', error.message);
+      return [];
     }
   }
 
-  async getMockTrends() {
-    // Mock trending topics for development/testing
-    return [
-      {
-        title: 'Artificial Intelligence Breakthroughs',
-        traffic: 'High',
-        source: 'mock'
-      },
-      {
-        title: 'Climate Change Solutions',
-        traffic: 'High',
-        source: 'mock'
-      },
-      {
-        title: 'Space Exploration News',
-        traffic: 'Medium',
-        source: 'mock'
-      },
-      {
-        title: 'Tech Industry Updates',
-        traffic: 'Medium',
-        source: 'mock'
-      },
-      {
-        title: 'Health and Wellness Trends',
-        traffic: 'High',
-        source: 'mock'
-      },
-      {
-        title: 'Sustainable Living',
-        traffic: 'Medium',
-        source: 'mock'
-      },
-      {
-        title: 'Digital Transformation',
-        traffic: 'High',
-        source: 'mock'
-      },
-      {
-        title: 'Remote Work Culture',
-        traffic: 'Medium',
-        source: 'mock'
-      },
-      {
-        title: 'Cybersecurity Threats',
-        traffic: 'High',
-        source: 'mock'
-      },
-      {
-        title: 'Renewable Energy Innovations',
-        traffic: 'Medium',
-        source: 'mock'
-      }
-    ];
-  }
-
-  async getAllTrends() {
+  async getAllTrends(forceRefresh = false) {
     try {
+      // Check cache first
+      if (!forceRefresh && this.cachedTrends && this.lastFetchTime) {
+        const timeSinceLastFetch = Date.now() - this.lastFetchTime;
+        if (timeSinceLastFetch < this.cacheDuration) {
+          console.log('[TRENDING] Using cached trends (age:', Math.round(timeSinceLastFetch / 1000), 'seconds)');
+          return this.cachedTrends;
+        }
+      }
+
+      console.log('[TRENDING] Fetching fresh trending topics...');
+      
+      // Fetch from multiple sources
       const [googleTrends, twitterTrends] = await Promise.allSettled([
         this.getGoogleTrends(),
         this.getTwitterTrends()
@@ -190,28 +249,40 @@ class TrendingService {
 
       const allTrends = [];
       
-      if (googleTrends.status === 'fulfilled') {
+      if (googleTrends.status === 'fulfilled' && googleTrends.value.length > 0) {
         allTrends.push(...googleTrends.value);
+        console.log(`[TRENDING] Added ${googleTrends.value.length} Google trends`);
       }
       
-      if (twitterTrends.status === 'fulfilled') {
+      if (twitterTrends.status === 'fulfilled' && twitterTrends.value.length > 0) {
         allTrends.push(...twitterTrends.value);
+        console.log(`[TRENDING] Added ${twitterTrends.value.length} Twitter trends`);
       }
 
-      // If both failed, use mock data
+      // If no real sources succeeded, return empty array
       if (allTrends.length === 0) {
-        allTrends.push(...this.getMockTrends());
+        console.log('[TRENDING] ❌ No trending topics found from real sources');
+        return [];
       }
 
       // Remove duplicates and limit to top 15
       const uniqueTrends = allTrends.filter((trend, index, self) => 
-        index === self.findIndex(t => t.title === trend.title)
+        index === self.findIndex(t => t.title.toLowerCase() === trend.title.toLowerCase())
       ).slice(0, 15);
+
+      // Update cache
+      this.cachedTrends = uniqueTrends;
+      this.lastFetchTime = Date.now();
+
+      console.log(`[TRENDING] ✅ Total unique trends: ${uniqueTrends.length}`);
+      uniqueTrends.forEach((trend, index) => {
+        console.log(`[TRENDING] ${index + 1}. ${trend.title} (${trend.source})`);
+      });
 
       return uniqueTrends;
     } catch (error) {
-      console.error('Error fetching all trends:', error);
-      return this.getMockTrends();
+      console.error('[TRENDING] ❌ Error fetching all trends:', error.message);
+      return [];
     }
   }
 
@@ -220,7 +291,7 @@ class TrendingService {
       const browser = await this.initBrowser();
       const page = await browser.newPage();
       
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
       
       // Search for related news and content
       await page.goto(`https://www.google.com/search?q=${encodeURIComponent(topic)}&tbm=nws`, {
