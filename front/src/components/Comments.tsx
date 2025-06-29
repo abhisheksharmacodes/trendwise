@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import Snackbar from "./Snackbar";
+import Image from "next/image";
 
 interface Comment {
   _id: string;
@@ -15,15 +16,6 @@ interface Comment {
 
 interface CommentsProps {
   articleId: string;
-}
-
-// Extend the session user type to include jwt and role
-interface ExtendedUser {
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  jwt?: string;
-  role?: string;
 }
 
 export default function Comments({ articleId }: CommentsProps) {
@@ -41,9 +33,53 @@ export default function Comments({ articleId }: CommentsProps) {
     type: "success" as "success" | "error" | "info"
   });
 
+  const fetchComments = useCallback(async () => {
+    // Check if offline before making the request
+    if (!navigator.onLine) {
+      setError("Comments will load once you get connected");
+      setSnackbar({
+        isVisible: true,
+        message: "Comments will load once you get connected",
+        type: "info"
+      });
+      return;
+    }
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/comments/${articleId}`,
+        { timeout: 10000 } // 10 second timeout
+      );
+      setComments(res.data);
+    } catch (err: unknown) {
+      let errorMessage = "Failed to load comments";
+      if (!navigator.onLine) {
+        errorMessage = "Comments will load once you get connected";
+      } else if (typeof err === 'object' && err !== null) {
+        const errorObj = err as { code?: string; message?: string; response?: { status?: number; data?: { message?: string } } };
+        if (errorObj.code === 'NETWORK_ERROR' || errorObj.message?.includes('Network Error') || errorObj.message?.includes('fetch')) {
+          errorMessage = "Comments will load once you get connected";
+        } else if (errorObj.response?.status === 0) {
+          errorMessage = "Comments will load once you get connected";
+        } else if (errorObj.code === 'ECONNABORTED' || errorObj.message?.includes('timeout')) {
+          errorMessage = "Comments will load once you get connected";
+        } else if (errorObj.response?.data?.message) {
+          errorMessage = errorObj.response.data.message;
+        }
+      }
+      setError(errorMessage);
+      if (errorMessage === "Comments will load once you get connected") {
+        setSnackbar({
+          isVisible: true,
+          message: errorMessage,
+          type: "info"
+        });
+      }
+    }
+  }, [articleId]);
+
   useEffect(() => {
     fetchComments();
-  }, [articleId]);
+  }, [articleId, fetchComments]);
 
   // Listen for online/offline events
   useEffect(() => {
@@ -70,55 +106,6 @@ export default function Comments({ articleId }: CommentsProps) {
       window.removeEventListener('offline', handleOffline);
     };
   }, [error]);
-
-  const fetchComments = async () => {
-    // Check if offline before making the request
-    if (!navigator.onLine) {
-      setError("Comments will load once you get connected");
-      setSnackbar({
-        isVisible: true,
-        message: "Comments will load once you get connected",
-        type: "info"
-      });
-      return;
-    }
-    
-    try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/comments/${articleId}`,
-        { timeout: 10000 } // 10 second timeout
-      );
-      setComments(res.data);
-    } catch (err: any) {
-      let errorMessage = "Failed to load comments";
-      
-      // Check for network connectivity issues
-      if (!navigator.onLine) {
-        errorMessage = "Comments will load once you get connected";
-      } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error') || err.message?.includes('fetch')) {
-        errorMessage = "Comments will load once you get connected";
-      } else if (err.response?.status === 0) {
-        // Status 0 typically indicates network issues
-        errorMessage = "Comments will load once you get connected";
-      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        // Timeout error
-        errorMessage = "Comments will load once you get connected";
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      }
-      
-      setError(errorMessage);
-      
-      // Show error message in snackbar for network issues
-      if (errorMessage === "Comments will load once you get connected") {
-        setSnackbar({
-          isVisible: true,
-          message: errorMessage,
-          type: "info"
-        });
-      }
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,31 +146,27 @@ export default function Comments({ articleId }: CommentsProps) {
         message: "Comment posted successfully!",
         type: "success"
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       let errorMessage = "Failed to post comment";
-      
-      // Check for network connectivity issues
       if (!navigator.onLine) {
         errorMessage = "Comment will be posted once you get connected";
         setIsOffline(true);
-      } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error') || err.message?.includes('fetch')) {
-        errorMessage = "Comment will be posted once you get connected";
-        setIsOffline(true);
-      } else if (err.response?.status === 0) {
-        // Status 0 typically indicates network issues
-        errorMessage = "Comment will be posted once you get connected";
-        setIsOffline(true);
-      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        // Timeout error
-        errorMessage = "Comment will be posted once you get connected";
-        setIsOffline(true);
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
+      } else if (typeof err === 'object' && err !== null) {
+        const errorObj = err as { code?: string; message?: string; response?: { status?: number; data?: { message?: string } } };
+        if (errorObj.code === 'NETWORK_ERROR' || errorObj.message?.includes('Network Error') || errorObj.message?.includes('fetch')) {
+          errorMessage = "Comment will be posted once you get connected";
+          setIsOffline(true);
+        } else if (errorObj.response?.status === 0) {
+          errorMessage = "Comment will be posted once you get connected";
+          setIsOffline(true);
+        } else if (errorObj.code === 'ECONNABORTED' || errorObj.message?.includes('timeout')) {
+          errorMessage = "Comment will be posted once you get connected";
+          setIsOffline(true);
+        } else if (errorObj.response?.data?.message) {
+          errorMessage = errorObj.response.data.message;
+        }
       }
-      
       setError(errorMessage);
-      
-      // Show error message
       setSnackbar({
         isVisible: true,
         message: errorMessage,
@@ -235,10 +218,12 @@ export default function Comments({ articleId }: CommentsProps) {
             <div key={comment._id} className="border rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 {comment.userAvatar && (
-                  <img
+                  <Image
                     src={comment.userAvatar}
                     alt={comment.userName}
                     className="w-8 h-8 rounded-full"
+                    width={32}
+                    height={32}
                   />
                 )}
                 <span className="font-medium">{comment.userName}</span>

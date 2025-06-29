@@ -1,11 +1,18 @@
 import { MetadataRoute } from 'next'
 import axios from 'axios'
 
+// Define a minimal type for sitemap articles
+interface SitemapArticle {
+  slug: string;
+  updatedAt?: string;
+  publishedAt?: string;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   
   // Get articles from API
-  let articles: any[] = []
+  let articles: SitemapArticle[] = []
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles`,

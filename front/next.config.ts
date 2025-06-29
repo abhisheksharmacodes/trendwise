@@ -10,9 +10,6 @@ const nextConfig: NextConfig = {
   // Enable compression
   compress: true,
   
-  // Enable SWC minification
-  swcMinify: true,
-  
   // Output configuration
   output: 'standalone',
 };

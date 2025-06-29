@@ -1,14 +1,11 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import axios from "axios";
 import ClientHomePage from "./ClientHomePage";
-import { cookies } from 'next/headers';
-import { headers } from 'next/headers';
-import { parse } from 'querystring';
 
-export default async function Home({ searchParams }: { searchParams?: { [key: string]: string } }) {
+export default async function Home({ searchParams }: { searchParams?: Promise<{ [key: string]: string }> }) {
+  const params = searchParams ? await searchParams : undefined;
   // Get page from search params (default 1)
-  const page = searchParams?.page ? parseInt(searchParams.page) : 1;
+  const page = params?.page ? parseInt(params.page) : 1;
   const limit = 10;
   try {
     const res = await axios.get(

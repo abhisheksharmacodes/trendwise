@@ -1,17 +1,29 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from 'next/navigation';
 
+// Define a minimal type for articles
+interface ArticleSummary {
+  slug: string;
+  title: string;
+  media?: {
+    images?: Array<{
+      url: string;
+      alt?: string;
+    }>;
+  };
+}
+
 interface ClientHomePageProps {
-  initialArticles: any[];
+  initialArticles: ArticleSummary[];
   total: number;
   initialPage?: number;
 }
 
 export default function ClientHomePage({ initialArticles, total, initialPage = 1 }: ClientHomePageProps) {
-  const [articles, setArticles] = useState(initialArticles);
+  const [articles, setArticles] = useState<ArticleSummary[]>(initialArticles);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,20 +33,7 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
   const postsPerPage = 10;
   const totalPages = Math.ceil(total / postsPerPage);
 
-  // Debounced live search
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (search) {
-        fetchArticles(search, 1);
-        setPage(1);
-      } else {
-        setArticles(initialArticles);
-      }
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [search, initialArticles]);
-
-  const fetchArticles = async (query = "", pageNum = 1) => {
+  const fetchArticles = useCallback(async (query = "", pageNum = 1) => {
     setLoading(true);
     try {
       const res = await axios.get(
@@ -47,11 +46,24 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
         // setTotal(res.data.total);
       }
       setError("");
-    } catch (err) {
+    } catch {
       setError("Failed to load articles");
     }
     setLoading(false);
-  };
+  }, [postsPerPage, search]);
+
+  // Debounced live search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (search) {
+        fetchArticles(search, 1);
+        setPage(1);
+      } else {
+        setArticles(initialArticles);
+      }
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search, initialArticles, fetchArticles]);
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -107,15 +119,15 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
           {search && (
             <div className="text-gray-600 mb-4">
               {articles.length === 0 ? (
-                <p>No articles found for "{search}"</p>
+                <p>No articles found for &quot;{search}&quot;</p>
               ) : (
-                <p>Found {articles.length} article{articles.length !== 1 ? 's' : ''} for "{search}"</p>
+                <p>Found {articles.length} article{articles.length !== 1 ? 's' : ''} for &quot;{search}&quot;</p>
               )}
             </div>
           )}
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {articles.length === 0 && !search && <li>No articles found.</li>}
-            {articles.map((article: any) => (
+            {articles.map((article: ArticleSummary) => (
               <li key={article.slug} className="opacity-97 border-[#00000040] border-1 hover:opacity-100 hover:scale-101 bg-white rounded-2xl shadow group cursor-pointer transition hover:shadow-lg">
                 <Link href={`/article/${article.slug}`} className="block h-full">
                   {article.media?.images?.[0]?.url && (

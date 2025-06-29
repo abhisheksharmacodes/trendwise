@@ -1,7 +1,7 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Snackbar from "@/components/Snackbar";
 
 const errorMessages: Record<string, string> = {
@@ -18,6 +18,14 @@ const errorMessages: Record<string, string> = {
 };
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();

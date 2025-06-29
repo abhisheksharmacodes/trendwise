@@ -1,8 +1,9 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Comment {
   _id: string;
@@ -14,18 +15,19 @@ interface Comment {
   createdAt: string;
 }
 
+// Define a type for the user
+interface ProfileUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
 export default function ProfilePage() {
   const { data: session } = useSession();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchUserComments();
-    }
-  }, [session]);
-
-  const fetchUserComments = async () => {
+  const fetchUserComments = useCallback(async () => {
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/comments/user/history`,
@@ -34,11 +36,17 @@ export default function ProfilePage() {
         }
       );
       setComments(res.data);
-    } catch (err) {
+    } catch {
       console.error("Failed to fetch user comments");
     }
     setLoading(false);
-  };
+  }, [session?.backendToken]);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchUserComments();
+    }
+  }, [session, fetchUserComments]);
 
   if (!session) {
     return (
@@ -49,7 +57,7 @@ export default function ProfilePage() {
     );
   }
 
-  const user = session.user as any;
+  const user = session.user as ProfileUser;
 
   return (
     <div>
@@ -58,10 +66,12 @@ export default function ProfilePage() {
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-4 mb-4">
           {user?.image && (
-            <img
+            <Image
               src={user.image}
               alt={user.name || "User"}
               className="w-16 h-16 rounded-full"
+              width={64}
+              height={64}
             />
           )}
           <div>
@@ -76,7 +86,7 @@ export default function ProfilePage() {
         {loading ? (
           <p>Loading comments...</p>
         ) : comments.length === 0 ? (
-          <p className="text-gray-500">You haven't commented on any articles yet.</p>
+          <p className="text-gray-500">You haven&apos;t commented on any articles yet.</p>
         ) : (
           <div className="space-y-4">
             {comments

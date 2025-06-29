@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 // Extend the session user type to include jwt and role
 interface ExtendedUser {
@@ -15,7 +15,6 @@ interface ExtendedUser {
 export default function Navbar() {
   const { data: session, status } = useSession();
   const user = session?.user as ExtendedUser;
-  const pathname = usePathname();
 
   return (
     <nav className="flex items-center justify-between py-4 px-6 mb-2 bg-white shadow-sm border border-gray-100 sticky top-0 z-30">
@@ -27,9 +26,11 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <Link href="/profile" className=" flex items-center gap-2 hover:underline font-medium text-gray-700">
               {user.image && (
-                <img
+                <Image
                   src={user.image}
                   alt={user.name || "User"}
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full border border-gray-200 shadow-sm"
                 />
               )}

@@ -4,6 +4,12 @@ import axios from "axios";
 import Link from "next/link";
 import Comments from "@/components/Comments";
 import ArticleContent from "@/components/ArticleContent";
+import Image from "next/image";
+
+// Define a minimal type for static params
+interface ArticleSummary {
+  slug: string;
+}
 
 // Generate static params for ISR
 export async function generateStaticParams() {
@@ -12,7 +18,7 @@ export async function generateStaticParams() {
       `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/articles`
     );
     
-    return res.data.articles.map((article: any) => ({
+    return res.data.articles.map((article: ArticleSummary) => ({
       slug: article.slug,
     }));
   } catch (error) {
@@ -35,8 +41,9 @@ async function getArticle(slug: string) {
 }
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const article = await getArticle(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const article = await getArticle(slug);
 
   if (!article) {
     return {
@@ -82,8 +89,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 // ISR configuration - revalidate every 60 seconds
 export const revalidate = 60;
 
-export default async function ArticleDetail({ params }: { params: { slug: string } }) {
-  const article = await getArticle(params.slug);
+export default async function ArticleDetail({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const article = await getArticle(slug);
 
   if (!article) {
     notFound();
@@ -98,10 +106,12 @@ export default async function ArticleDetail({ params }: { params: { slug: string
         <span>{article.readTime || 2} min read</span>
       </div>
       {article.media?.images?.[0]?.url && (
-        <img
+        <Image
           src={article.media.images[0].url}
           alt={article.media.images[0].alt || article.title}
           className="w-full rounded-xl mb-6"
+          width={800}
+          height={400}
         />
       )}
       <ArticleContent content={article.content} media={article.media} />
