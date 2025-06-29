@@ -149,85 +149,6 @@ class TrendingService {
     }
   }
 
-  async getTwitterTrends() {
-    try {
-      console.log('[TRENDING] Fetching Twitter Trends...');
-      const browser = await this.initBrowser();
-      const page = await browser.newPage();
-      
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-      await page.setViewport({ width: 1920, height: 1080 });
-      
-      // Try extracting from .r-bcqeeo first
-      let topics = await page.$$eval('.r-poiln3', els => els.map(el => el.textContent.trim()).filter(Boolean));
-      console.log(`[TRENDING] .r-bcqeeo found: ${topics.length} elements`);
-      if (topics.length > 0) {
-        topics.forEach((t, i) => console.log(`[TRENDING] .r-bcqeeo[${i}]:`, t));
-        // Return as trend objects
-        const trends = topics.slice(0, 10).map(title => ({
-          title,
-          traffic: 'Trending on Twitter',
-          source: 'twitter',
-          timestamp: new Date().toISOString()
-        }));
-        await page.close();
-        console.log(`[TRENDING] ✅ Twitter Trends fetched: ${trends.length} topics (from .r-bcqeeo)`);
-        return trends;
-      }
-
-      // Fallback: Extract trending topics with improved selectors
-      let trends = await page.evaluate(() => {
-        const selectors = [
-          '[data-testid="trend"]',
-          '.trend-item',
-          '[data-testid="trending"]',
-          '.trending-topic'
-        ];
-        let trendElements = [];
-        for (const selector of selectors) {
-          trendElements = document.querySelectorAll(selector);
-          if (trendElements.length > 0) break;
-        }
-        const trends = [];
-        trendElements.forEach((element, index) => {
-          if (index < 10) {
-            const textSelectors = [
-              '[data-testid="trend"] span',
-              '.trend-text',
-              '.trending-text',
-              'span',
-              'div'
-            ];
-            let title = '';
-            for (const selector of textSelectors) {
-              const textElement = element.querySelector(selector);
-              if (textElement && textElement.textContent.trim()) {
-                title = textElement.textContent.trim();
-                break;
-              }
-            }
-            if (title) {
-              trends.push({
-                title: title,
-                traffic: 'Trending on Twitter',
-                source: 'twitter',
-                timestamp: new Date().toISOString()
-              });
-            }
-          }
-        });
-        return trends;
-      });
-      console.log(`[TRENDING] Fallback selectors found: ${trends.length} topics`);
-      await page.close();
-      console.log(`[TRENDING] ✅ Twitter Trends fetched: ${trends.length} topics`);
-      return trends;
-    } catch (error) {
-      console.error('[TRENDING] ❌ Error fetching Twitter Trends:', error.message);
-      return [];
-    }
-  }
-
   async getAllTrends(forceRefresh = false) {
     try {
       // Check cache first
@@ -240,45 +161,29 @@ class TrendingService {
       }
 
       console.log('[TRENDING] Fetching fresh trending topics...');
-      
-      // Fetch from multiple sources
-      const [googleTrends, twitterTrends] = await Promise.allSettled([
-        this.getGoogleTrends(),
-        this.getTwitterTrends()
-      ]);
-
+      // Only fetch from Google Trends
+      const googleTrends = await this.getGoogleTrends();
       const allTrends = [];
-      
-      if (googleTrends.status === 'fulfilled' && googleTrends.value.length > 0) {
-        allTrends.push(...googleTrends.value);
-        console.log(`[TRENDING] Added ${googleTrends.value.length} Google trends`);
+      if (googleTrends && googleTrends.length > 0) {
+        allTrends.push(...googleTrends);
+        console.log(`[TRENDING] Added ${googleTrends.length} Google trends`);
       }
-      
-      if (twitterTrends.status === 'fulfilled' && twitterTrends.value.length > 0) {
-        allTrends.push(...twitterTrends.value);
-        console.log(`[TRENDING] Added ${twitterTrends.value.length} Twitter trends`);
-      }
-
       // If no real sources succeeded, return empty array
       if (allTrends.length === 0) {
         console.log('[TRENDING] ❌ No trending topics found from real sources');
         return [];
       }
-
       // Remove duplicates and limit to top 15
       const uniqueTrends = allTrends.filter((trend, index, self) => 
         index === self.findIndex(t => t.title.toLowerCase() === trend.title.toLowerCase())
       ).slice(0, 15);
-
       // Update cache
       this.cachedTrends = uniqueTrends;
       this.lastFetchTime = Date.now();
-
       console.log(`[TRENDING] ✅ Total unique trends: ${uniqueTrends.length}`);
       uniqueTrends.forEach((trend, index) => {
         console.log(`[TRENDING] ${index + 1}. ${trend.title} (${trend.source})`);
       });
-
       return uniqueTrends;
     } catch (error) {
       console.error('[TRENDING] ❌ Error fetching all trends:', error.message);

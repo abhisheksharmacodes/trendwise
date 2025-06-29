@@ -47,15 +47,28 @@ Requirements:
    - Do NOT output any plain text outside of tags.
    - Do NOT use line breaks for paragraphs—use <p>.
    - Do NOT use <br> for spacing.
-3. Use clear paragraph breaks and spacing for readability.
-4. Use subheadings frequently to break up content and guide the reader.
-5. Use bullet points or numbered lists for steps, tips, or grouped information.
-6. Highlight key points with <strong> or <em>.
-7. Make the layout visually engaging and easy to scan.
-8. Write in a professional but accessible tone.
-9. Include a meta description (max 160 characters)
-10. Suggest 5-8 relevant keywords
-11. Include 2-3 relevant hashtags for social media
+3. At the very top of the article, include a single <img> tag as the cover image, relevant to the topic. This should be the first image in the HTML.
+4. Use clear paragraph breaks and spacing for readability.
+5. Use subheadings frequently to break up content and guide the reader.
+6. Use bullet points or numbered lists for steps, tips, or grouped information.
+7. Highlight key points with <strong> or <em>.
+8. Make the layout visually engaging and easy to scan.
+9. Write in a professional but accessible tone.
+10. Include a meta description (max 160 characters)
+11. Suggest 5-8 relevant keywords
+12. Include 2-3 relevant hashtags for social media
+13. **Most importantly: Embed all images, videos, and tweets directly in the HTML content at the most contextually relevant places.**
+    - For images, use <img src="IMAGE_URL" alt="ALT_TEXT" />
+    - For videos, use <iframe src="VIDEO_URL" allowfullscreen></iframe>
+    - For tweets, use <blockquote class="twitter-tweet"><a href="TWEET_URL"></a></blockquote>
+    - Do NOT use placeholders or separate media sections. Do NOT append media at the end—place them where they fit best in the article flow.
+14. For all <img> tags, use only image URLs from https://picsum.photos/. For each image, use a unique seed based on the topic or section (e.g., https://picsum.photos/seed/[topic]1/800/400). Do NOT use any other image sources.
+15. Never include any instructional or placeholder text such as "[Insert ...]", "[Add ...]", or similar. All content must be fully written out, complete, and ready for publication. Do not leave any part of the article as a prompt or suggestion for the writer.
+16. For all <img> tags, add style="border-radius: 16px;" to make images rounded.
+17. For all <p> tags, add style="text-indent: 2em;" to ensure proper paragraph indentation.
+18. Ensure there is clear and visually pleasing spacing between paragraphs and images. For all <img> tags, add style="margin: 2em 0; border-radius: 16px;" (or similar) to provide vertical space above and below images. For all <p> tags, use style="text-indent: 2em; margin-bottom: 1.5em;" to provide spacing after each paragraph.
+19. For all <h2> tags, add style="font-size: 1.5em; font-weight: bold; margin-top: 2em; margin-bottom: 1em;" to ensure they are visually prominent, bold, and well-spaced.
+20. For all <h3> tags, add style="font-size: 1.2em; font-weight: bold; margin-top: 1.5em; margin-bottom: 0.75em;".
 
 ${contentContext}
 
@@ -67,46 +80,48 @@ KEYWORDS: [keyword1, keyword2, keyword3, keyword4, keyword5]
 HASHTAGS: [hashtag1, hashtag2, hashtag3]
 
 CONTENT:
-[Your article content in valid, semantic HTML as described above]
+[Your entire article content in valid, semantic HTML as described above, with all embeds already placed]
 
+MEDIA:
 IMAGES:
-[Suggest 2-3 relevant image descriptions for the article]
-
+- [image_url_1] | [alt text 1]
+- [image_url_2] | [alt text 2]
 VIDEOS:
-[Suggest 1-2 relevant video topics or sources]
-
+- [video_url_1]
+- [video_url_2]
 TWEETS:
-[Suggest 2-3 tweet-worthy quotes from the article]
+- [tweet_url_1]
+- [tweet_url_2]
+
+Only include items that are actually embedded in the CONTENT.
+
+---
+
+Example:
+
+TITLE: The Future of AI
+META_DESCRIPTION: Discover how AI is shaping our world.
+KEYWORDS: AI, future, technology, innovation, trends
+HASHTAGS: #AI #Future #Tech
+
+CONTENT:
+<h1>The Future of AI</h1>
+<img src="https://picsum.photos/seed/aifuture1/800/400" alt="AI Future Cover" style="border-radius: 16px; margin: 2em 0;" />
+<p style="text-indent: 2em; margin-bottom: 1.5em;">AI is changing everything...</p>
+<h2 style="font-size: 1.5em; font-weight: bold; margin-top: 2em; margin-bottom: 1em;">Finding the Best Deals</h2>
+<h3 style="font-size: 1.2em; font-weight: bold; margin-top: 1.5em; margin-bottom: 0.75em;">Tips for Online Shopping</h3>
+<iframe src="https://youtube.com/embed/xyz" allowfullscreen></iframe>
+<blockquote class="twitter-tweet"><a href="https://twitter.com/example/status/123"></a></blockquote>
+
+MEDIA:
+IMAGES:
+- [https://picsum.photos/seed/aifuture1/800/400] | [AI Future Cover]
+VIDEOS:
+- [https://youtube.com/embed/xyz]
+TWEETS:
+- [https://twitter.com/example/status/123]
 
 Make sure the content is original, engaging, and provides real value to readers.`;
-  }
-
-  // Post-process content to ensure HTML structure
-  postProcessContent(rawContent) {
-    // If it already contains lots of tags, return as is
-    const tagCount = (rawContent.match(/<\/?[a-z][^>]*>/gi) || []).length;
-    if (tagCount > 5) return rawContent;
-
-    // Otherwise, wrap lines in <p> and detect headings
-    return rawContent
-      .split(/\n+/)
-      .map(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return '';
-        // Heading detection: line ends with ':' or is ALL CAPS or looks like a section
-        if (/^[A-Z][A-Za-z0-9 ,:'"-]{3,80}:$/.test(trimmed) || /^[A-Z ]{5,}$/.test(trimmed)) {
-          return `<h2>${trimmed.replace(/:$/, '')}</h2>`;
-        }
-        // List detection: starts with - or *
-        if (/^[-*] /.test(trimmed)) {
-          return `<li>${trimmed.replace(/^[-*] /, '')}</li>`;
-        }
-        // Otherwise, wrap in <p>
-        return `<p>${trimmed}</p>`;
-      })
-      .join('\n')
-      // If we created <li>, wrap them in <ul>
-      .replace(/(<li>.*?<\/li>\n?)+/gs, match => `<ul>\n${match}\n</ul>\n`);
   }
 
   parseGeneratedContent(content, topic) {
@@ -118,8 +133,6 @@ Make sure the content is original, engaging, and provides real value to readers.
       // Extract meta description
       const metaMatch = content.match(/META_DESCRIPTION:\s*(.+?)(?=\n|$)/i);
       let metaDescription = metaMatch ? metaMatch[1].trim() : `Learn everything about ${topic} in this comprehensive guide.`;
-      
-      // Truncate meta description if it's too long (max 300 characters)
       if (metaDescription.length > 300) {
         metaDescription = metaDescription.substring(0, 297) + '...';
       }
@@ -136,37 +149,69 @@ Make sure the content is original, engaging, and provides real value to readers.
         ? hashtagsMatch[1].split(',').map(h => h.trim()).filter(h => h)
         : [`#${topic.replace(/\s+/g, '')}`, '#trending', '#guide'];
 
-      // Extract main content
-      const contentMatch = content.match(/CONTENT:\s*([\s\S]*?)(?=\n(?:IMAGES|VIDEOS|TWEETS):|$)/i);
+      // Extract main content (now with all embeds already placed)
+      const contentMatch = content.match(/CONTENT:\s*([\s\S]*?)(?=\nMEDIA:|$)/i);
       let articleContent = contentMatch ? contentMatch[1].trim() : content;
-      // Post-process to ensure HTML structure
-      articleContent = this.postProcessContent(articleContent);
 
-      // Extract image suggestions
-      const imagesMatch = content.match(/IMAGES:\s*([\s\S]*?)(?=\n(?:VIDEOS|TWEETS):|$)/i);
-      const imageSuggestions = imagesMatch 
-        ? imagesMatch[1].split('\n').map(img => img.trim()).filter(img => img && img !== 'IMAGES:')
-        : [`${topic} illustration`, `${topic} infographic`];
+      // Extract the first <img> src as cover image
+      let coverImage = '';
+      const imgMatch = articleContent.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (imgMatch) {
+        coverImage = imgMatch[1];
+      }
 
-      // Extract video suggestions
-      const videosMatch = content.match(/VIDEOS:\s*([\s\S]*?)(?=\nTWEETS:|$)/i);
-      const videoSuggestions = videosMatch 
-        ? videosMatch[1].split('\n').map(vid => vid.trim()).filter(vid => vid && vid !== 'VIDEOS:')
-        : [`${topic} tutorial`, `${topic} overview`];
-
-      // Extract tweet suggestions
-      const tweetsMatch = content.match(/TWEETS:\s*([\s\S]*?)$/i);
-      const tweetSuggestions = tweetsMatch 
-        ? tweetsMatch[1].split('\n').map(tweet => tweet.trim()).filter(tweet => tweet && tweet !== 'TWEETS:')
-        : [`Discover the latest insights about ${topic}!`, `Everything you need to know about ${topic} in one place.`];
+      // Extract MEDIA section
+      const mediaMatch = content.match(/MEDIA:\s*([\s\S]*)$/i);
+      let images = [], videos = [], tweets = [];
+      if (mediaMatch) {
+        const mediaSection = mediaMatch[1];
+        // Images
+        const imagesMatch = mediaSection.match(/IMAGES:\s*([\s\S]*?)(?=VIDEOS:|TWEETS:|$)/i);
+        if (imagesMatch) {
+          images = imagesMatch[1].split('\n').map(line => {
+            const m = line.match(/-\s*\[(.+?)\]\s*\|\s*\[(.+?)\]/);
+            if (m) return { url: m[1].trim(), alt: m[2].trim(), caption: m[2].trim() };
+            return null;
+          }).filter(Boolean);
+        }
+        // Videos
+        const videosMatch = mediaSection.match(/VIDEOS:\s*([\s\S]*?)(?=TWEETS:|$)/i);
+        if (videosMatch) {
+          videos = videosMatch[1].split('\n').map(line => {
+            const m = line.match(/-\s*\[(.+?)\]/);
+            if (m) return { url: m[1].trim(), title: '', platform: 'youtube' };
+            return null;
+          }).filter(Boolean);
+        }
+        // Tweets
+        const tweetsMatch = mediaSection.match(/TWEETS:\s*([\s\S]*)/i);
+        if (tweetsMatch) {
+          tweets = tweetsMatch[1].split('\n').map(line => {
+            const m = line.match(/-\s*\[(.+?)\]/);
+            if (m) return { url: m[1].trim(), content: '', author: 'TrendWise' };
+            return null;
+          }).filter(Boolean);
+        }
+      }
+      // Fallback: If media arrays are empty, extract from HTML
+      if (images.length === 0) {
+        images = Array.from(articleContent.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi)).map(m => ({
+          url: m[1], alt: m[2], caption: m[2] }));
+      }
+      if (videos.length === 0) {
+        videos = Array.from(articleContent.matchAll(/<iframe[^>]+src=["']([^"']+)["'][^>]*>/gi)).map(m => ({
+          url: m[1], title: '', platform: 'youtube' }));
+      }
+      if (tweets.length === 0) {
+        tweets = Array.from(articleContent.matchAll(/<blockquote[^>]*class=["'][^"']*twitter-tweet[^"']*["'][^>]*>\s*<a[^>]+href=["']([^"']+)["']/gi)).map(m => ({
+          url: m[1], content: '', author: 'TrendWise' }));
+      }
 
       // Generate slug from title
       const slug = this.generateSlug(title);
-
       // Calculate read time (rough estimate: 200 words per minute)
       const wordCount = articleContent.split(/\s+/).length;
       const readTime = Math.ceil(wordCount / 200);
-
       // Calculate SEO score
       const seoScore = this.calculateSEOScore(title, metaDescription, keywords, articleContent);
 
@@ -183,7 +228,7 @@ Make sure the content is original, engaging, and provides real value to readers.
         ogTags: {
           title,
           description: metaDescription,
-          image: imageSuggestions[0] || `${topic} image`,
+          image: coverImage || '',
           url: `${process.env.FRONTEND_URL}/article/${slug}`
         },
         trendingTopic: topic,
@@ -192,21 +237,9 @@ Make sure the content is original, engaging, and provides real value to readers.
         seoScore,
         readTime,
         media: {
-          images: imageSuggestions.map((desc, index) => ({
-            url: `https://picsum.photos/seed/${encodeURIComponent(topic.replace(/\s+/g, ''))}${index + 1}/800/400`,
-            alt: desc,
-            caption: desc
-          })),
-          videos: videoSuggestions.map(desc => ({
-            url: `https://www.youtube.com/results?search_query=${encodeURIComponent(desc)}`,
-            title: desc,
-            platform: 'youtube'
-          })),
-          tweets: tweetSuggestions.map(content => ({
-            url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(content)}`,
-            content,
-            author: 'TrendWise'
-          }))
+          images,
+          videos,
+          tweets
         },
         hashtags
       };
