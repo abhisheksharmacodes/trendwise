@@ -71,7 +71,7 @@ class TrendingService {
       if (topics.length > 0) {
         topics.forEach((t, i) => console.log(`[TRENDING] .mZ3RIc[${i}]:`, t));
         // Return as trend objects
-        const trends = topics.slice(0, 15).map(title => ({
+        const trends = topics.map(title => ({
           title,
           traffic: 'Unknown',
           source: 'google_trends',
@@ -97,44 +97,43 @@ class TrendingService {
         }
         const trends = [];
         trendElements.forEach((element, index) => {
-          if (index < 15) {
-            const titleSelectors = [
-              '.title',
-              '.trend-title',
-              'h3',
-              '.trending-title',
-              '[data-testid="trend-title"]'
-            ];
-            const trafficSelectors = [
-              '.search-count-title',
-              '.traffic-count',
-              '.trend-traffic',
-              '[data-testid="traffic-count"]'
-            ];
-            let title = '';
-            let traffic = 'Unknown';
-            for (const selector of titleSelectors) {
-              const titleElement = element.querySelector(selector);
-              if (titleElement) {
-                title = titleElement.textContent.trim();
-                break;
-              }
+          // No limit, add all
+          const titleSelectors = [
+            '.title',
+            '.trend-title',
+            'h3',
+            '.trending-title',
+            '[data-testid="trend-title"]'
+          ];
+          const trafficSelectors = [
+            '.search-count-title',
+            '.traffic-count',
+            '.trend-traffic',
+            '[data-testid="traffic-count"]'
+          ];
+          let title = '';
+          let traffic = 'Unknown';
+          for (const selector of titleSelectors) {
+            const titleElement = element.querySelector(selector);
+            if (titleElement) {
+              title = titleElement.textContent.trim();
+              break;
             }
-            for (const selector of trafficSelectors) {
-              const trafficElement = element.querySelector(selector);
-              if (trafficElement) {
-                traffic = trafficElement.textContent.trim();
-                break;
-              }
+          }
+          for (const selector of trafficSelectors) {
+            const trafficElement = element.querySelector(selector);
+            if (trafficElement) {
+              traffic = trafficElement.textContent.trim();
+              break;
             }
-            if (title) {
-              trends.push({
-                title: title,
-                traffic: traffic,
-                source: 'google_trends',
-                timestamp: new Date().toISOString()
-              });
-            }
+          }
+          if (title) {
+            trends.push({
+              title: title,
+              traffic: traffic,
+              source: 'google_trends',
+              timestamp: new Date().toISOString()
+            });
           }
         });
         return trends;
@@ -176,7 +175,7 @@ class TrendingService {
       // Remove duplicates and limit to top 15
       const uniqueTrends = allTrends.filter((trend, index, self) => 
         index === self.findIndex(t => t.title.toLowerCase() === trend.title.toLowerCase())
-      ).slice(0, 15);
+      );
       // Update cache
       this.cachedTrends = uniqueTrends;
       this.lastFetchTime = Date.now();

@@ -1,10 +1,34 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const trendingService = require('./trendingService');
+const axios = require('axios');
+const UNSPLASH_ACCESS_KEY = 'xqIQs8rrumdtc2HcEikdArFpWfFuvDNa5BoA4kaTLog';
 
 class ContentService {
   constructor() {
     this.genAI = new GoogleGenerativeAI('AIzaSyDQhCJAQaqicOP7TYzAH99X3p3tEeKiubw');
     this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    this.testUnsplashConnection();
+  }
+
+  async testUnsplashConnection() {
+    try {
+      console.log('Testing Unsplash API connection...');
+      const response = await axios.get('https://api.unsplash.com/photos/random', {
+        params: { query: 'test', count: 1 },
+        headers: { 
+          Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+          'Accept-Version': 'v1'
+        },
+        timeout: 5000
+      });
+      console.log('✅ Unsplash API connection successful');
+    } catch (error) {
+      console.error('❌ Unsplash API connection failed:', error.message);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
+    }
   }
 
   async generateArticle(topic, relatedContent = []) {
@@ -16,7 +40,7 @@ class ContentService {
       const content = response.text();
       
       // Parse the generated content
-      const articleData = this.parseGeneratedContent(content, topic);
+      const articleData = await this.parseGeneratedContent(content, topic);
       
       return articleData;
     } catch (error) {
@@ -47,7 +71,18 @@ Requirements:
    - Do NOT output any plain text outside of tags.
    - Do NOT use line breaks for paragraphs—use <p>.
    - Do NOT use <br> for spacing.
-3. At the very top of the article, include a single <img> tag as the cover image, relevant to the topic. This should be the first image in the HTML.
+3. **CRITICAL: Include 3-5 relevant images throughout the article using <img> tags.**
+   - Place the first image right after the <h1> title as a cover image
+   - Add images at the beginning of major sections (after <h2> tags)
+   - Use Picsum images with relevant keywords: <img src="https://picsum.photos/800/600?random=1&keyword=RELEVANT_KEYWORD" alt="Relevant description" style="border-radius: 16px; margin: 2em 0;" />
+   - Replace RELEVANT_KEYWORD with actual keywords related to the topic (e.g., "technology", "business", "data", "ai", "finance", etc.)
+   - Use different keywords for different images to ensure variety
+   - Use different random numbers (random=1, random=2, random=3, etc.) for each image to get different images
+   - Use hyphenated keywords for better results (e.g., "artificial-intelligence", "machine-learning", "blockchain-technology")
+   - Example: <img src="https://picsum.photos/800/600?random=1&keyword=artificial-intelligence" alt="AI Technology" style="border-radius: 16px; margin: 2em 0;" />
+   - **ABSOLUTELY DO NOT use any images from upload.wikimedia.org, commons.wikimedia.org, or any Wikimedia domains**
+   - Do NOT use placeholder URLs like example.com or broken links
+   - Ensure images are highly relevant to the topic and section they appear in
 4. Use clear paragraph breaks and spacing for readability.
 5. Use subheadings frequently to break up content and guide the reader.
 6. Use bullet points or numbered lists for steps, tips, or grouped information.
@@ -58,17 +93,23 @@ Requirements:
 11. Suggest 5-8 relevant keywords
 12. Include 2-3 relevant hashtags for social media
 13. **Most importantly: Embed all images, videos, and tweets directly in the HTML content at the most contextually relevant places.**
-    - For images, use <img src="IMAGE_URL" alt="ALT_TEXT" />
-    - For videos, use <iframe src="VIDEO_URL" allowfullscreen></iframe>
+    - For images, use <img src="IMAGE_URL" alt="ALT_TEXT" style="border-radius: 16px; margin: 2em 0;" />
+    - For videos, use <iframe src="VIDEO_URL" allowfullscreen style="width: 100%; height: 400px; border-radius: 16px; margin: 2em 0;"></iframe>
     - For tweets, use <blockquote class="twitter-tweet"><a href="TWEET_URL"></a></blockquote>
     - Do NOT use placeholders or separate media sections. Do NOT append media at the end—place them where they fit best in the article flow.
-14. For all <img> tags, use only image URLs from https://picsum.photos/. For each image, use a unique seed based on the topic or section (e.g., https://picsum.photos/seed/[topic]1/800/400). Do NOT use any other image sources.
+14. For all <img> tags, use real, relevant, and publicly accessible image URLs that are highly related to the article topic or section. Prefer images from reputable sources such as Unsplash, Pexels, or official news/media sites. **DO NOT use any images from upload.wikimedia.org or any Wikimedia domains.** Do NOT use example.com, placeholder, or broken links. Always provide a valid, working image URL that matches the topic and is embeddable.
 15. Never include any instructional or placeholder text such as "[Insert ...]", "[Add ...]", or similar. All content must be fully written out, complete, and ready for publication. Do not leave any part of the article as a prompt or suggestion for the writer.
-16. For all <img> tags, add style="border-radius: 16px;" to make images rounded.
-17. For all <p> tags, add style="text-indent: 2em;" to ensure proper paragraph indentation.
-18. Ensure there is clear and visually pleasing spacing between paragraphs and images. For all <img> tags, add style="margin: 2em 0; border-radius: 16px;" (or similar) to provide vertical space above and below images. For all <p> tags, use style="text-indent: 2em; margin-bottom: 1.5em;" to provide spacing after each paragraph.
-19. For all <h2> tags, add style="font-size: 1.5em; font-weight: bold; margin-top: 2em; margin-bottom: 1em;" to ensure they are visually prominent, bold, and well-spaced.
-20. For all <h3> tags, add style="font-size: 1.2em; font-weight: bold; margin-top: 1.5em; margin-bottom: 0.75em;".
+16. For all <img> tags, add style="border-radius: 16px; margin: 2em 0;" to make images rounded and properly spaced.
+17. For all <p> tags, add style="text-indent: 2em; margin-bottom: 1.5em;" to ensure proper paragraph indentation and spacing.
+18. Ensure there is clear and visually pleasing spacing between paragraphs and images.
+19. For all <h2> tags, add style="font-size: 1.5em !important; font-weight: bold !important; margin-top: 2em; margin-bottom: 0.3em !important;" to ensure they are visually prominent, bold, and well-spaced.
+20. For all <h3> tags, add style="font-size: 1.2em !important; font-weight: bold !important; margin-top: 1.5em; margin-bottom: 0.3em !important;".
+21. For all <p> tags that immediately follow headings, set margin-top to 0.3em so the heading and its related paragraph are visually grouped.
+22. Whenever possible, embed relevant YouTube videos directly in the article using <iframe> tags. The videos should be highly relevant to the article topic or section.
+23. For all <iframe> tags (YouTube videos), use style="width: 100%; height: 400px; border-radius: 16px; margin: 2em 0;" so that videos are the same size and style as images.
+24. Only embed YouTube videos that are publicly available and embeddable. Do NOT use playlist links, private videos, or videos that are likely to be region-locked or unavailable. Always use a direct YouTube video link in the format https://www.youtube.com/embed/VIDEO_ID, and ensure the video is playable and embeddable for most users.
+25. Avoid using playlist URLs (such as .../videoseries?list=...) or any link that does not point to a single, public YouTube video.
+26. Whenever possible, embed relevant tweets directly in the article using <blockquote class="twitter-tweet"><a href="TWEET_URL"></a></blockquote>. The tweets should be highly relevant to the article topic or section, such as expert opinions, news, or viral posts.
 
 ${contentContext}
 
@@ -106,25 +147,24 @@ HASHTAGS: #AI #Future #Tech
 
 CONTENT:
 <h1>The Future of AI</h1>
-<img src="https://picsum.photos/seed/aifuture1/800/400" alt="AI Future Cover" style="border-radius: 16px; margin: 2em 0;" />
-<p style="text-indent: 2em; margin-bottom: 1.5em;">AI is changing everything...</p>
-<h2 style="font-size: 1.5em; font-weight: bold; margin-top: 2em; margin-bottom: 1em;">Finding the Best Deals</h2>
-<h3 style="font-size: 1.2em; font-weight: bold; margin-top: 1.5em; margin-bottom: 0.75em;">Tips for Online Shopping</h3>
-<iframe src="https://youtube.com/embed/xyz" allowfullscreen></iframe>
-<blockquote class="twitter-tweet"><a href="https://twitter.com/example/status/123"></a></blockquote>
+<img src="https://picsum.photos/800/600?random=1&keyword=artificial-intelligence" alt="AI Future Cover" style="border-radius: 16px; margin: 2em 0;" />
+<h2 style="font-size: 1.5em !important; font-weight: bold !important; margin-top: 2em; margin-bottom: 0.3em !important;">Finding the Best Deals</h2>
+<p style="text-indent: 2em; margin-top: 0.3em; margin-bottom: 1.5em;">To find the absolute best deals...</p>
+<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen style="width: 100%; height: 400px; border-radius: 16px; margin: 2em 0;"></iframe>
+<blockquote class="twitter-tweet"><a href="https://twitter.com/elonmusk/status/1354617646168217602"></a></blockquote>
 
 MEDIA:
 IMAGES:
-- [https://picsum.photos/seed/aifuture1/800/400] | [AI Future Cover]
+- [https://picsum.photos/800/600?random=1&keyword=artificial-intelligence] | [AI Future Cover]
 VIDEOS:
-- [https://youtube.com/embed/xyz]
+- [https://www.youtube.com/embed/dQw4w9WgXcQ]
 TWEETS:
-- [https://twitter.com/example/status/123]
+- [https://twitter.com/elonmusk/status/1354617646168217602]
 
 Make sure the content is original, engaging, and provides real value to readers.`;
   }
 
-  parseGeneratedContent(content, topic) {
+  async parseGeneratedContent(content, topic) {
     try {
       // Extract title
       const titleMatch = content.match(/TITLE:\s*(.+?)(?=\n|$)/i);
@@ -156,7 +196,7 @@ Make sure the content is original, engaging, and provides real value to readers.
       // Extract the first <img> src as cover image
       let coverImage = '';
       const imgMatch = articleContent.match(/<img[^>]+src=["']([^"']+)["']/i);
-      if (imgMatch) {
+      if (imgMatch && !shouldExcludeImage(imgMatch[1])) {
         coverImage = imgMatch[1];
       }
 
@@ -195,8 +235,9 @@ Make sure the content is original, engaging, and provides real value to readers.
       }
       // Fallback: If media arrays are empty, extract from HTML
       if (images.length === 0) {
-        images = Array.from(articleContent.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi)).map(m => ({
-          url: m[1], alt: m[2], caption: m[2] }));
+        images = Array.from(articleContent.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi))
+          .map(m => ({ url: m[1], alt: m[2], caption: m[2] }))
+          .filter(img => !shouldExcludeImage(img.url));
       }
       if (videos.length === 0) {
         videos = Array.from(articleContent.matchAll(/<iframe[^>]+src=["']([^"']+)["'][^>]*>/gi)).map(m => ({
@@ -205,6 +246,57 @@ Make sure the content is original, engaging, and provides real value to readers.
       if (tweets.length === 0) {
         tweets = Array.from(articleContent.matchAll(/<blockquote[^>]*class=["'][^"']*twitter-tweet[^"']*["'][^>]*>\s*<a[^>]+href=["']([^"']+)["']/gi)).map(m => ({
           url: m[1], content: '', author: 'TrendWise' }));
+      }
+
+      // Filter out invalid YouTube embeds (playlists, non-direct video links)
+      const validYouTubeEmbed = (url) =>
+        /^https:\/\/www\.youtube\.com\/embed\/[\w-]{11}(\?.*)?$/.test(url);
+      videos = videos.filter(v => validYouTubeEmbed(v.url));
+      // Remove invalid iframes from articleContent
+      articleContent = articleContent.replace(/<iframe[^>]+src=["']([^"']+)["'][^>]*><\/iframe>/gi, (match, src) => {
+        return validYouTubeEmbed(src) ? match : '';
+      });
+
+      // Filter out excluded images (Wikimedia, etc.)
+      const originalImageCount = images.length;
+      images = images.filter(img => {
+        if (shouldExcludeImage(img.url)) {
+          console.log(`Filtering out excluded image: ${img.url}`);
+          return false;
+        }
+        return true;
+      });
+      if (originalImageCount > images.length) {
+        console.log(`Filtered out ${originalImageCount - images.length} excluded images`);
+      }
+      
+      // Remove excluded images from article content
+      articleContent = articleContent.replace(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi, (match, src) => {
+        if (shouldExcludeImage(src)) {
+          console.log(`Removing excluded image from content: ${src}`);
+          return '';
+        }
+        return match;
+      });
+
+      // If no images remain, add Picsum fallback
+      if (images.length === 0) {
+        console.log('Final fallback: adding Picsum image');
+        const keywords = topic.toLowerCase().split(' ').filter(word => word.length > 2);
+        const relevantKeyword = keywords.length > 0 ? keywords[0] : 'technology';
+        const randomNum = Math.floor(Math.random() * 100) + 1;
+        const fallbackImage = `https://picsum.photos/800/600?random=${randomNum}&keyword=${relevantKeyword}`;
+        images = [{
+          url: fallbackImage,
+          alt: topic,
+          caption: topic
+        }];
+        
+        // Add to article content if not already present
+        if (!articleContent.includes(fallbackImage)) {
+          const imgTag = `<img src="${fallbackImage}" alt="${topic}" style="border-radius: 16px; margin: 2em 0;" />`;
+          articleContent = imgTag + articleContent;
+        }
       }
 
       // Generate slug from title
