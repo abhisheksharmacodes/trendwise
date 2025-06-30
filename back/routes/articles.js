@@ -29,7 +29,12 @@ router.get('/', async (req, res) => {
     const total = await Article.countDocuments(query);
     res.json({ articles, total });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch articles' });
+    console.error('[GET /api/articles] Error:', error);
+    console.error('Request query:', req.query);
+    if (error && error.stack) {
+      console.error(error.stack);
+    }
+    res.status(500).json({ error: 'Failed to fetch articles', details: error.message });
   }
 });
 
