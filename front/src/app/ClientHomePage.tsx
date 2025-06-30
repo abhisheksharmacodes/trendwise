@@ -76,14 +76,14 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
   };
 
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex flex-col items-center gap-8 mt-8">
       <div className="flex gap-4 mb-4">
         <input
           type="text"
           placeholder="Search articles"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-2 rounded-full p-4 pr-18 border-[#00000050] pl-6 w-100 bg-white shadow-sm active:border-[#000000cc]"
+          className="border border-2 rounded-full p-4 pr-18 border-[#00000050] pl-6 w-full md:w-100 bg-white shadow-sm active:border-[#000000cc]"
         />
         {search ? (
           <button
