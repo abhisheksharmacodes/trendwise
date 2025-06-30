@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Image optimization
   images: {
-    domains: ['localhost', 'your-image-domain.com','lh3.googleusercontent.com'], // Add your image domains
+    domains: [], // Allow images from any domain
     formats: ['image/webp', 'image/avif'],
   },
   
