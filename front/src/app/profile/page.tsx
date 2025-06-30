@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Link from "next/link";
 import Image from "next/image";
-import { signOut } from "next-auth/react";
+import { signOut as nextAuthSignOut } from "next-auth/react";
 
 interface Comment {
   _id: string;
@@ -81,7 +81,7 @@ export default function ProfilePage() {
           </div>
         </div>
         <button
-          onClick={() => signOut()}
+          onClick={() => nextAuthSignOut()}
           className="mt-2 px-4 py-2 cursor-pointer rounded bg-gray-100 hover:bg-gray-200 text-sm font-medium border border-gray-200 text-gray-800"
         >
           Logout
