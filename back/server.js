@@ -9,6 +9,7 @@ const nodeCron = require('node-cron');
 const contentService = require('./services/contentService');
 const Article = require('./models/Article');
 const trendingService = require('./services/trendingService');
+const connectDB = require('./utils/db');
 
 // Load environment variables
 dotenv.config();
@@ -45,14 +46,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/trendwise')
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.error('MongoDB connection error:', error);
-  });
+// Database connection (singleton)
+connectDB();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
