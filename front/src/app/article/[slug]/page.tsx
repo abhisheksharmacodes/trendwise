@@ -15,7 +15,7 @@ interface ArticleSummary {
 export async function generateStaticParams() {
   try {
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/articles`
+      `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/articles`
     );
     
     return res.data.articles.map((article: ArticleSummary) => ({
@@ -31,7 +31,7 @@ export async function generateStaticParams() {
 async function getArticle(slug: string) {
   try {
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/articles/${slug}`
+      `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/articles/${slug}`
     );
     return res.data;
   } catch (error) {

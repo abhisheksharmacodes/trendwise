@@ -57,7 +57,7 @@ cp env.example .env
 npm run dev
 ```
 
-5. The API will be available at `http://localhost:5000`
+5. The API will be available at `https://trendwise-app-back.vercel.app`
 
 ## API Endpoints
 

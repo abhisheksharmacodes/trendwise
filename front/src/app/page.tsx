@@ -9,7 +9,7 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
   const limit = 10;
   try {
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/articles`,
+      `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/articles`,
       { params: { page, limit } }
     );
     const initialArticles = res.data.articles;

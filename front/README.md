@@ -44,7 +44,7 @@ cp env.local.example .env.local
    - `NEXTAUTH_SECRET`: Random string for NextAuth
    - `GOOGLE_CLIENT_ID`: Google OAuth client ID
    - `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
-   - `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:5000)
+   - `NEXT_PUBLIC_API_URL`: Backend API URL (default: https://trendwise-app-back.vercel.app)
 
 4. Run the development server:
 ```bash

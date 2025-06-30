@@ -30,7 +30,7 @@ export default function ProfilePage() {
   const fetchUserComments = useCallback(async () => {
     try {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/comments/user/history`,
+        `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/comments/user/history`,
         {
           headers: { Authorization: `Bearer ${session?.backendToken}` },
         }

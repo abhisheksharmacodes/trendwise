@@ -46,7 +46,7 @@ export default function Comments({ articleId }: CommentsProps) {
     }
     try {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/comments/${articleId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/comments/${articleId}`,
         { timeout: 10000 } // 10 second timeout
       );
       setComments(res.data);
@@ -129,7 +129,7 @@ export default function Comments({ articleId }: CommentsProps) {
     
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/comments/${articleId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/comments/${articleId}`,
         { content: newComment },
         {
           headers: { Authorization: `Bearer ${session?.backendToken}` },

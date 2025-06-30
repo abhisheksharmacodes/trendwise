@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let articles: SitemapArticle[] = []
   try {
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'https://trendwise-app-back.vercel.app'}/api/articles`,
       { params: { limit: 1000 } }
     )
     articles = res.data.articles
