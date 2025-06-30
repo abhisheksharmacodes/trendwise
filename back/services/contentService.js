@@ -54,7 +54,14 @@ class ContentService {
       ? `\n\nRelated content found:\n${relatedContent.map(item => `- ${item.title}: ${item.snippet}`).join('\n')}`
       : '';
 
-    return `You are an expert content writer and SEO specialist. Create a comprehensive, SEO-optimized blog article about "${topic}".
+    return `You are an expert content writer and SEO specialist.${topic} is trending on Goolge trends for a reason, find it out and Create a comprehensive, SEO-optimized blog article about it.".
+
+IMPORTANT:
+- DO NOT GIVE SHORT RESPONSE BUT A FULL FLEDGED ARTICLE AS DESCRIBED BELOW.
+- If you do not include at least 3 <img> tags using picsum.photos as described, your answer will be rejected.
+- Do NOT output only a heading or a short paragraph. The article must be at least 800 words and include images as described.
+- If you do not follow these instructions, you will be asked to try again.
+- Repeat: ALL images MUST use picsum.photos as the source, and there must be at least 3 images in the article content.
 
 Requirements:
 1. Write a compelling, informative article (800-1200 words)
@@ -74,13 +81,13 @@ Requirements:
 3. **CRITICAL: Include 3-5 relevant images throughout the article using <img> tags.**
    - Place the first image right after the <h1> title as a cover image
    - Add images at the beginning of major sections (after <h2> tags)
-   - Use Picsum images with relevant keywords: <img src="https://picsum.photos/800/600?random=1&keyword=RELEVANT_KEYWORD" alt="Relevant description" style="border-radius: 16px; margin: 2em 0;" />
+   - **ALL images MUST use Picsum as the source: <img src=\"https://picsum.photos/800/600?random=1&keyword=RELEVANT_KEYWORD\" alt=\"Relevant description\" style=\"border-radius: 16px; margin: 2em 0;\" />**
    - Replace RELEVANT_KEYWORD with actual keywords related to the topic (e.g., "technology", "business", "data", "ai", "finance", etc.)
    - Use different keywords for different images to ensure variety
    - Use different random numbers (random=1, random=2, random=3, etc.) for each image to get different images
    - Use hyphenated keywords for better results (e.g., "artificial-intelligence", "machine-learning", "blockchain-technology")
-   - Example: <img src="https://picsum.photos/800/600?random=1&keyword=artificial-intelligence" alt="AI Technology" style="border-radius: 16px; margin: 2em 0;" />
-   - **ABSOLUTELY DO NOT use any images from upload.wikimedia.org, commons.wikimedia.org, or any Wikimedia domains**
+   - Example: <img src=\"https://picsum.photos/800/600?random=1&keyword=artificial-intelligence\" alt=\"AI Technology\" style=\"border-radius: 16px; margin: 2em 0;\" />
+   - **ABSOLUTELY DO NOT use any images from upload.wikimedia.org, commons.wikimedia.org, Wikimedia, Unsplash, Pexels, example.com, or any other source. ONLY use picsum.photos.**
    - Do NOT use placeholder URLs like example.com or broken links
    - Ensure images are highly relevant to the topic and section they appear in
 4. Use clear paragraph breaks and spacing for readability.
@@ -297,6 +304,12 @@ Make sure the content is original, engaging, and provides real value to readers.
           const imgTag = `<img src="${fallbackImage}" alt="${topic}" style="border-radius: 16px; margin: 2em 0;" />`;
           articleContent = imgTag + articleContent;
         }
+      }
+
+      // Post-processing check: Ensure at least 3 picsum images and minimum content length
+      const picsumImgCount = (articleContent.match(/<img[^>]+src=["']https:\/\/picsum\.photos/g) || []).length;
+      if (picsumImgCount < 3 || articleContent.split(/\s+/).length < 800) {
+        throw new Error('Gemini output did not meet requirements: less than 3 picsum images or too short.');
       }
 
       // Generate slug from title

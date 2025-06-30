@@ -36,12 +36,7 @@ export default function Comments({ articleId }: CommentsProps) {
   const fetchComments = useCallback(async () => {
     // Check if offline before making the request
     if (!navigator.onLine) {
-      setError("Comments will load once you get connected");
-      setSnackbar({
-        isVisible: true,
-        message: "Comments will load once you get connected",
-        type: "info"
-      });
+      setError("Failed to load comments (offline)");
       return;
     }
     try {
@@ -52,28 +47,13 @@ export default function Comments({ articleId }: CommentsProps) {
       setComments(res.data);
     } catch (err: unknown) {
       let errorMessage = "Failed to load comments";
-      if (!navigator.onLine) {
-        errorMessage = "Comments will load once you get connected";
-      } else if (typeof err === 'object' && err !== null) {
+      if (typeof err === 'object' && err !== null) {
         const errorObj = err as { code?: string; message?: string; response?: { status?: number; data?: { message?: string } } };
-        if (errorObj.code === 'NETWORK_ERROR' || errorObj.message?.includes('Network Error') || errorObj.message?.includes('fetch')) {
-          errorMessage = "Comments will load once you get connected";
-        } else if (errorObj.response?.status === 0) {
-          errorMessage = "Comments will load once you get connected";
-        } else if (errorObj.code === 'ECONNABORTED' || errorObj.message?.includes('timeout')) {
-          errorMessage = "Comments will load once you get connected";
-        } else if (errorObj.response?.data?.message) {
+        if (errorObj.response?.data?.message) {
           errorMessage = errorObj.response.data.message;
         }
       }
       setError(errorMessage);
-      if (errorMessage === "Comments will load once you get connected") {
-        setSnackbar({
-          isVisible: true,
-          message: errorMessage,
-          type: "info"
-        });
-      }
     }
   }, [articleId]);
 
@@ -117,11 +97,6 @@ export default function Comments({ articleId }: CommentsProps) {
     // Check if offline before making the request
     if (!navigator.onLine) {
       setIsOffline(true);
-      setSnackbar({
-        isVisible: true,
-        message: "Comment will be posted once you get connected",
-        type: "info"
-      });
       setError("Comment will be posted once you get connected");
       setLoading(false);
       return;
@@ -153,16 +128,7 @@ export default function Comments({ articleId }: CommentsProps) {
         setIsOffline(true);
       } else if (typeof err === 'object' && err !== null) {
         const errorObj = err as { code?: string; message?: string; response?: { status?: number; data?: { message?: string } } };
-        if (errorObj.code === 'NETWORK_ERROR' || errorObj.message?.includes('Network Error') || errorObj.message?.includes('fetch')) {
-          errorMessage = "Comment will be posted once you get connected";
-          setIsOffline(true);
-        } else if (errorObj.response?.status === 0) {
-          errorMessage = "Comment will be posted once you get connected";
-          setIsOffline(true);
-        } else if (errorObj.code === 'ECONNABORTED' || errorObj.message?.includes('timeout')) {
-          errorMessage = "Comment will be posted once you get connected";
-          setIsOffline(true);
-        } else if (errorObj.response?.data?.message) {
+        if (errorObj.response?.data?.message) {
           errorMessage = errorObj.response.data.message;
         }
       }
