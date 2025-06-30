@@ -18,7 +18,7 @@ export default function Navbar() {
 
   return (
     <nav className="flex items-center justify-between py-4 px-6 mb-2 bg-white shadow-sm border border-gray-100 sticky top-0 z-30">
-      <Link href="/" className="text-2xl font-extrabold tracking-tight text-blue-700 font-geist-sans">
+      <Link href="/" className="active:underline text-2xl font-extrabold tracking-tight text-blue-700 font-geist-sans">
         TrendWise
       </Link>
       <div className="flex items-center gap-4">

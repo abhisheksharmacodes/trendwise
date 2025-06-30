@@ -112,18 +112,24 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
         )}
       </div>
       {loading ? (
-        <div>Loading articles...</div>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <li key={i} className="animate-pulse bg-gray-100 rounded-2xl shadow h-72 flex flex-col">
+              <div className="bg-gray-200 h-56 w-full rounded-t-2xl" />
+              <div className="p-4 flex-1 flex flex-col justify-end">
+                <div className="h-6 bg-gray-300 rounded w-3/4 mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : error ? (
         <div className="text-red-500">{error}</div>
       ) : (
         <>
-          {search && (
+          {search && articles.length === 0 && (
             <div className="text-gray-600 mb-4">
-              {articles.length === 0 ? (
                 <p>No articles found for &quot;{search}&quot;</p>
-              ) : (
-                <p>Found {articles.length} article{articles.length !== 1 ? 's' : ''} for &quot;{search}&quot;</p>
-              )}
             </div>
           )}
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
