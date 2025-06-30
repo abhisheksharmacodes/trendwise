@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const trendingService = require('./trendingService');
 const axios = require('axios');
-const UNSPLASH_ACCESS_KEY = 'xqIQs8rrumdtc2HcEikdArFpWfFuvDNa5BoA4kaTLog';
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
 class ContentService {
   constructor() {
