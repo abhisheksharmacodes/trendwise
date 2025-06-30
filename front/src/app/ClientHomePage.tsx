@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from "next/image";
 
 // Define a minimal type for articles
 interface ArticleSummary {
@@ -131,10 +132,13 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
               <li key={article.slug} className="opacity-97 border-[#00000040] border-1 hover:opacity-100 hover:scale-101 bg-white rounded-2xl shadow group cursor-pointer transition hover:shadow-lg">
                 <Link href={`/article/${article.slug}`} className="block h-full">
                   {article.media?.images?.[0]?.url && (
-                    <img
+                    <Image
                       src={article.media.images[0].url}
                       alt={article.media.images[0].alt || article.title}
                       className="w-full h-56 object-cover rounded-t-2xl"
+                      width={400}
+                      height={224}
+                      priority={true}
                     />
                   )}
                   <div className="p-4">
