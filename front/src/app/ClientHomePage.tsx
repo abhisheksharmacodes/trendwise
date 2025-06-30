@@ -152,15 +152,18 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
               <button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
-                className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
+                className={`flex items-center justify-center focus:outline-none ${page === 1 ? 'text-gray-400' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
+                aria-label="Previous Page"
               >
-                Previous
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <button
                   key={p}
                   onClick={() => handlePageChange(p)}
-                  className={`px-3 py-1 rounded ${p === page ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
+                  className={`px-3 py-1 rounded cursor-pointer ${p === page ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
                 >
                   {p}
                 </button>
@@ -168,9 +171,12 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
               <button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === totalPages}
-                className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
+                className={`flex items-center justify-center focus:outline-none ${page === totalPages ? 'text-gray-400' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
+                aria-label="Next Page"
               >
-                Next
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             </div>
           )}
