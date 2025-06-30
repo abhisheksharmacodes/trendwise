@@ -24,7 +24,10 @@ export default function Navbar() {
       <div className="flex items-center gap-4">
         {status === "loading" ? null : user ? (
           <div className="flex items-center gap-3">
-            <Link href="/profile" className=" flex items-center gap-2 hover:underline font-medium text-gray-700">
+            <Link
+              href="/profile"
+              className="flex items-center gap-2 hover:underline font-medium text-gray-700"
+            >
               {user.image && (
                 <Image
                   src={user.image}
@@ -36,12 +39,6 @@ export default function Navbar() {
               )}
               <span className="font-medium text-gray-800">{user.name}</span>
             </Link>
-            <button
-              onClick={() => signOut()}
-              className="ml-2 px-3 py-1 cursor-pointer rounded bg-gray-100 hover:bg-gray-200 text-sm font-medium border border-gray-200"
-            >
-              Logout
-            </button>
           </div>
         ) : (
           <button

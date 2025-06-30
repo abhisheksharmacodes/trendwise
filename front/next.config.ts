@@ -1,10 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Image optimization
   images: {
-    domains: [], // Allow images from any domain
-    formats: ['image/webp', 'image/avif'],
+    remotePatterns: [
+      // WILDCARD FOR ANY HOSTNAME (USE WITH EXTREME CAUTION IN PRODUCTION)
+      {
+        protocol: 'https',
+        hostname: '**', // Allows any HTTPS hostname
+      },
+      {
+        protocol: 'http', // If you need to allow HTTP sources too (less secure)
+        hostname: '**', // Allows any HTTP hostname
+      },
+    ],
   },
   
   // Enable compression
