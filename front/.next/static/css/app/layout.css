@@ -339,6 +339,9 @@
   .my-6 {
     margin-block: calc(var(--spacing) * 6);
   }
+  .my-8 {
+    margin-block: calc(var(--spacing) * 8);
+  }
   .my-\[8px\] {
     margin-block: 8px;
   }

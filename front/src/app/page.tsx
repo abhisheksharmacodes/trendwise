@@ -6,7 +6,7 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
   const params = searchParams ? await searchParams : undefined;
   // Get page from search params (default 1)
   const page = params?.page ? parseInt(params.page) : 1;
-  const limit = 10;
+  const limit = 12;
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/articles`,

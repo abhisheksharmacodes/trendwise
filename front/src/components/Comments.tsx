@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import axios from "axios";
 import Snackbar from "./Snackbar";
 import Image from "next/image";
@@ -171,7 +171,7 @@ export default function Comments({ articleId }: CommentsProps) {
         </form>
       ) : (
         <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-          <p>Please log in to comment.</p>
+          <p>Please <span className="text-blue-600 cursor-pointer" onClick={()=>signIn("google")}>log in</span> to comment.</p>
         </div>
       )}
 

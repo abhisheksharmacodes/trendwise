@@ -1,5 +1,5 @@
 "use client";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Link from "next/link";
@@ -53,7 +53,7 @@ export default function ProfilePage() {
     return (
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-4">Profile</h1>
-        <p>Please log in to view your profile.</p>
+        <p>Please <span className="text-blue-600 cursor-pointer hover:underline active:underline" onClick={() => signIn("google")}>log in</span>to view your profile.</p>
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Profile</h1>
+      <h1 className="text-2xl font-bold my-6">Profile</h1>
       
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-4 mb-4">

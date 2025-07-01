@@ -4,6 +4,7 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from "next/image";
+import Snackbar from "@/components/Snackbar";
 
 // Define a minimal type for articles
 interface ArticleSummary {
@@ -33,6 +34,7 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
   const searchParams = useSearchParams();
   const postsPerPage = 10;
   const totalPages = Math.ceil(total / postsPerPage);
+  const [showSnackbar, setShowSnackbar] = useState(false);
 
   const fetchArticles = useCallback(async (query = "", pageNum = 1) => {
     setLoading(true);
@@ -47,8 +49,10 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
         // setTotal(res.data.total);
       }
       setError("");
+      setShowSnackbar(false);
     } catch {
       setError("Failed to load articles");
+      setShowSnackbar(true);
     }
     setLoading(false);
   }, [postsPerPage, search]);
@@ -77,7 +81,7 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
   };
 
   return (
-    <div className="flex flex-col items-center gap-8 mt-8">
+    <div className="flex flex-col items-center gap-8 my-8">
       <div className="flex gap-4 mb-4">
         <input
           type="text"
@@ -123,10 +127,14 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
             </li>
           ))}
         </ul>
-      ) : error ? (
-        <div className="text-red-500">{error}</div>
       ) : (
         <>
+          <Snackbar
+            message={error}
+            type="error"
+            isVisible={showSnackbar}
+            onClose={() => setShowSnackbar(false)}
+          />
           {search && articles.length === 0 && (
             <div className="text-gray-600 mb-4">
                 <p>No articles found for &quot;{search}&quot;</p>
@@ -156,7 +164,6 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
               </li>
             ))}
           </ul>
-          {/* Pagination Controls */}
           {!search && totalPages > 1 && (
             <div className="flex gap-2 mt-8">
               <button
