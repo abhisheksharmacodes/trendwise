@@ -81,7 +81,7 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
   };
 
   return (
-    <div className="flex flex-col items-center gap-8 my-8">
+    <div className="flex flex-col items-center gap-8 px-6 sm:px-0 my-8">
       <div className="flex gap-4 mb-4">
         <input
           type="text"
