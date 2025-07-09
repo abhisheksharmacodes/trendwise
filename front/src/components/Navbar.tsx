@@ -17,8 +17,8 @@ export default function Navbar() {
   const user = session?.user as ExtendedUser;
 
   return (
-    <nav className="flex items-center justify-between py-4 px-6 sm:px-8 mb-2 bg-white shadow-sm border border-gray-100 sticky top-0 z-30">
-      <Image src="/logo.svg" height="50" width="50" alt="logo" className="block sm:hidden"></Image>
+    <nav className="flex items-center justify-between py-3 px-6 sm:px-8 mb-2 bg-white shadow-sm border border-gray-100 sticky top-0 z-30">
+      <Image src="/logo.svg" height="55" width="55" alt="logo" className="block sm:hidden"></Image>
       <Link href="/" className="active:underline text-2xl font-extrabold tracking-tight text-blue-700 font-geist-sans hidden sm:block">
         TrendWise
       </Link>
