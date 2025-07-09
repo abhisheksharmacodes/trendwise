@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
+  "/sitemap.xml/route": "/sitemap.xml",
+  "/robots.txt/route": "/robots.txt",
+  "/favicon.ico/route": "/favicon.ico",
+  "/profile/page": "/profile",
+  "/login/page": "/login",
+  "/page": "/",
+  "/article/[slug]/page": "/article/[slug]"
+}
