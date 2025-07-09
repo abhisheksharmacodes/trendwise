@@ -98,7 +98,7 @@ export default async function ArticleDetail({ params }: { params: Promise<{ slug
   }
 
   return (
-    <article className="bg-white rounded-2xl shadow p-6 max-w-3xl mx-auto">
+    <article className="bg-white mt-6 rounded-2xl shadow p-6 max-w-3xl mx-auto">
       <h1 className="text-3xl font-extrabold mb-2 leading-tight">{article.title}</h1>
       <div className="text-gray-500 text-sm mb-4 flex items-center gap-4">
         <span>{article.trendingTopic}</span>

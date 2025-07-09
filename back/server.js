@@ -123,9 +123,9 @@ app.listen(PORT, () => {
   console.log('🚀 Starting initial article generation...');
   
   // Run initial article generation after a short delay to ensure everything is loaded
-  setTimeout(() => {
-    generateArticlesFromTrends();
-  }, 5000); // 5 second delay
+  // setTimeout(() => {
+  //   generateArticlesFromTrends();
+  // }, 5000); // 5 second delay
 });
 
 module.exports = app; 

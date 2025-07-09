@@ -26,7 +26,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <Link
               href="/profile"
-              className="flex items-center gap-2 hover:underline font-medium text-gray-700"
+              className="flex items-center gap-3 hover:underline font-medium text-gray-700"
             >
               {user.image && (
                 <Image
