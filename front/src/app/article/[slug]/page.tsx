@@ -101,7 +101,7 @@ export default async function ArticleDetail({ params }: { params: Promise<{ slug
     <article className="bg-white mt-0 sm:mt-6 sm:rounded-2xl shadow p-6 sm:p-6 max-w-3xl mx-0 sm:mx-auto">
       <h1 className="text-2xl sm:text-3xl font-extrabold mb-2 leading-tight">{article.title}</h1>
       <div className="text-gray-500 text-sm mb-4 flex items-center gap-4">
-        <span>{article.trendingTopic}</span>
+        <span className="uppercase">{article.trendingTopic}</span>
         <span>·</span>
         <span>{article.readTime || 2} min read</span>
       </div>
