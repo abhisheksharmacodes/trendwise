@@ -15,7 +15,7 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
     const initialArticles = res.data.articles;
     const total = res.data.total;
     return (
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<></>}>
         <ClientHomePage initialArticles={initialArticles} total={total} initialPage={page} />
       </Suspense>
     );

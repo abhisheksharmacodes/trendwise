@@ -38,6 +38,7 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
 
   const fetchArticles = useCallback(async (query = "", pageNum = 1) => {
     setLoading(true);
+    console.log(`[fetchArticles] START: query='${query}', page=${pageNum}`);
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL || "https://trendwise-app-back.vercel.app"}/api/articles`,
@@ -50,11 +51,14 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
       }
       setError("");
       setShowSnackbar(false);
-    } catch {
+      console.log(`[fetchArticles] SUCCESS: query='${query}', page=${pageNum}, articles=${res.data.articles.length}`);
+    } catch (err) {
       setError("Failed to load articles");
       setShowSnackbar(true);
+      console.log(`[fetchArticles] ERROR: query='${query}', page=${pageNum}, error=`, err);
     }
     setLoading(false);
+    console.log(`[fetchArticles] END: query='${query}', page=${pageNum}`);
   }, [postsPerPage, search]);
 
   // Debounced live search
@@ -72,6 +76,7 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
+    console.log(`[handlePageChange] newPage=${newPage}`);
     setPage(newPage);
     fetchArticles(search, newPage);
     // Update URL query param
@@ -137,13 +142,14 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
           />
           {search && articles.length === 0 && (
             <div className="text-gray-600 mb-4">
-                <p>No articles found for &quot;{search}&quot;</p>
+              <p>No articles found for &quot;{search}&quot;</p>
             </div>
           )}
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {articles.length === 0 && !search && <li>No articles found.</li>}
-            {articles.map((article: ArticleSummary) => (
-              <li key={article.slug} className="opacity-97 border-[#00000040] border-1 hover:opacity-100 hover:scale-101 bg-white rounded-2xl shadow group cursor-pointer transition hover:shadow-lg">
+            {articles.map((article: ArticleSummary) => {
+              console.log(article.media?.images?.[0]?.url)
+              return <li key={article.slug} className="opacity-97 border-[#00000040] border-1 hover:opacity-100 hover:scale-101 bg-white rounded-2xl shadow group cursor-pointer transition hover:shadow-lg">
                 <Link href={`/article/${article.slug}`} className="block h-full">
                   {article.media?.images?.[0]?.url && (
                     <Image
@@ -162,7 +168,7 @@ export default function ClientHomePage({ initialArticles, total, initialPage = 1
                   </div>
                 </Link>
               </li>
-            ))}
+            })}
           </ul>
           {!search && totalPages > 1 && (
             <div className="flex gap-2 mt-8">

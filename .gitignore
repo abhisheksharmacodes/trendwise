@@ -1,6 +1,7 @@
 # Ignore node_modules in both back and front folders
 back/node_modules
 front/node_modules
+front/.next
 # Ignore package manager files
 back/package-lock.json
 front/package-lock.json

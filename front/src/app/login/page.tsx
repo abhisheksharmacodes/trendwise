@@ -19,7 +19,7 @@ const errorMessages: Record<string, string> = {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <LoginPageContent />
     </Suspense>
   );
@@ -54,7 +54,7 @@ function LoginPageContent() {
     setSnackbar(prev => ({ ...prev, isVisible: false }));
   };
 
-  if (status === "loading") return <div>Loading...</div>;
+  if (status === "loading") return <></>;
 
   if (session) {
     return (
