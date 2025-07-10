@@ -2,10 +2,33 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const trendingService = require('./trendingService');
 const axios = require('axios');
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
+const SERPAPI_KEY = '5b5393fc0fb0de50ce2ecc416b00d4f97bf8ed742b81f6c4f691a4235b733443';
 
 // Allow all images (permissive)
 function shouldExcludeImage(url) {
   return false;
+}
+
+async function fetchImagesFromSerpApi(keyword, numImages = 3) {
+  try {
+    const response = await axios.get('https://serpapi.com/search', {
+      params: {
+        engine: 'google_images',
+        q: keyword,
+        api_key: SERPAPI_KEY,
+        num: numImages
+      }
+    });
+    // Log the full SerpAPI response for debugging
+    console.log(`Full SerpAPI response for '${keyword}':`, JSON.stringify(response.data, null, 2));
+    const images = response.data.images_results || [];
+    const urls = images.slice(0, numImages).map(img => img.original || img.thumbnail || img.link).filter(Boolean);
+    console.log(`Fetched SerpAPI images for '${keyword}':`, urls);
+    return urls;
+  } catch (error) {
+    console.error('Error fetching images from SerpAPI:', error.message);
+    return [];
+  }
 }
 
 class ContentService {
@@ -59,14 +82,18 @@ class ContentService {
 
       console.log('--- RAW GEMINI RESPONSE ---');
       console.log(content);
-
+      
       // Parse the generated content
       const articleData = await this.parseGeneratedContent(content, topic);
-
+      
       return articleData;
     } catch (error) {
-      console.error('Error generating article with Gemini:', error);
-      throw new Error('Failed to generate article content');
+      console.error(`[ARTICLE GENERATION ERROR] Failed to generate article for topic: "${topic}"`);
+      console.error('Error message:', error.message);
+      if (error.stack) {
+        console.error('Error stack:', error.stack);
+      }
+      throw new Error('Failed to generate article content: ' + error.message);
     }
   }
 
@@ -91,7 +118,6 @@ IMPORTANT:
 - Highlight key points with <strong> or <em> tags.
 - Make the layout visually engaging and easy to scan.
 - Write in a professional but accessible tone.
-- **You MUST embed at least one relevant image from various image sources.** Use the format: . Ensure 'RELEVANT_KEYWORD' is descriptive and related to the image content. Use a different 'random' number for each image.
 - Make sure you use good formatting for headings, paragraphs, text-indentation, paragraph spacing.
 
 **CRITICAL CONTENT SECTIONS (ENSURE THESE ARE COVERED IN DETAIL TO REACH WORD COUNT):**
@@ -161,7 +187,7 @@ ${contentContext}
       if (!contentMatch) console.warn('CONTENT section not found, using full content.');
 
       // Extract the first <img> src as cover image
-      let coverImage = '';
+      
       const imgMatch = articleContent.match(/<img[^>]+src=["']([^"']+)["']/i);
       if (imgMatch && !shouldExcludeImage(imgMatch[1])) {
         coverImage = imgMatch[1];
@@ -207,6 +233,29 @@ ${contentContext}
           .filter(img => !shouldExcludeImage(img.url));
         console.log('Extracted images from HTML:', images);
       }
+
+      // Replace placeholder images with real images from SerpAPI
+      const placeholderRegex = /https?:\/\/(via\.placeholder\.com|picsum\.photos)[^"']*/g;
+      let serpImages = [];
+      if (images.some(img => placeholderRegex.test(img.url))) {
+        // Use topic or first keyword for image search
+        const searchKeyword = (keywords && keywords.length > 0) ? keywords[0] : topic;
+        serpImages = await fetchImagesFromSerpApi(searchKeyword, images.length);
+        images = images.map((img, idx) => {
+          if (placeholderRegex.test(img.url) && serpImages[idx]) {
+            return { ...img, url: serpImages[idx] };
+          }
+          return img;
+        });
+        // Also replace in articleContent
+        let serpIdx = 0;
+        articleContent = articleContent.replace(placeholderRegex, () => {
+          const url = serpImages[serpIdx] || '';
+          serpIdx++;
+          return url;
+        });
+        console.log('Replaced placeholder images with SerpAPI images:', images);
+      }
       if (videos.length === 0) {
         videos = Array.from(articleContent.matchAll(/<iframe[^>]+src=["']([^"']+)["'][^>]*>/gi)).map(m => ({
           url: m[1], title: '', platform: 'youtube'
@@ -249,6 +298,16 @@ ${contentContext}
         return match;
       });
 
+      // DEBUG: Always call SerpAPI for image search, regardless of placeholders
+      const debugSearchKeyword = (keywords && keywords.length > 0) ? keywords[0] : topic;
+      console.log('[DEBUG] Calling fetchImagesFromSerpApi with:', debugSearchKeyword, images.length);
+      const debugSerpImages = await fetchImagesFromSerpApi(debugSearchKeyword, images.length || 3);
+      console.log('[DEBUG] SerpAPI returned:', debugSerpImages);
+
+      // Use SerpAPI images as the images array for the article
+      let imagesForArticle = debugSerpImages.map(url => ({ url, alt: debugSearchKeyword, caption: debugSearchKeyword }));
+      let coverImage = imagesForArticle.length > 0 ? imagesForArticle[0].url : '';
+
       // Log what was extracted
       console.log('Extracted title:', title);
       console.log('Extracted metaDescription:', metaDescription);
@@ -279,6 +338,12 @@ ${contentContext}
       // Calculate SEO score
       const seoScore = this.calculateSEOScore(title, metaDescription, keywords, articleContent);
 
+      // After replacing placeholder images with SerpAPI images
+      // Ensure the first image is set as coverImage
+      // let coverImage = ''; // This line is now redundant as coverImage is set above
+      // if (images.length > 0 && images[0].url) {
+      //   coverImage = images[0].url;
+      // }
       return {
         title,
         slug,
@@ -301,15 +366,16 @@ ${contentContext}
         seoScore,
         readTime,
         media: {
-          images,
+          images: imagesForArticle,
           videos,
           tweets
         },
         hashtags
       };
     } catch (error) {
-      console.error('Error parsing generated content:', error);
-      if (error && error.stack) {
+      console.error(`[PARSING ERROR] Failed to parse generated content for topic: "${topic}"`);
+      console.error('Error message:', error.message);
+      if (error.stack) {
         console.error('Error stack:', error.stack);
       }
       console.error('RAW CONTENT THAT CAUSED ERROR:', content);
