@@ -1066,17 +1066,39 @@ body {
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
   min-height: 100vh;
 }
+h1,
+h2,
+h3,
+h4 {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 10px;
+}
+h2 {
+  font-size: 1.4em;
+}
+h1 ~ p,
+h2 ~ p,
+h3 ~ p,
+h4 ~ p {
+  text-indent: 30px;
+  text-align: justify;
+}
+.prose li {
+  list-style-type: disc;
+  margin-left: 20px;
+}
 .card {
   background: #fff;
   border-radius: 1rem;
-  box-shadow: 0 4px 24px 0 rgba(30,41,59,0.08), 0 1.5px 4px 0 rgba(30,41,59,0.04);
+  box-shadow: 0 4px 24px 0 rgba(30, 41, 59, 0.08), 0 1.5px 4px 0 rgba(30, 41, 59, 0.04);
   overflow: hidden;
   transition: box-shadow 0.2s, transform 0.2s;
   border: none;
   position: relative;
 }
 .card:hover {
-  box-shadow: 0 8px 32px 0 rgba(30,41,59,0.16), 0 3px 8px 0 rgba(30,41,59,0.08);
+  box-shadow: 0 8px 32px 0 rgba(30, 41, 59, 0.16), 0 3px 8px 0 rgba(30, 41, 59, 0.08);
   transform: translateY(-4px) scale(1.01);
 }
 .card-image {
@@ -1100,7 +1122,7 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   padding: 1.5rem;
-  background: linear-gradient(0deg,rgba(255,255,255,0.92) 60%,rgba(255,255,255,0.2) 100%);
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.92) 60%, rgba(255, 255, 255, 0.2) 100%);
 }
 .card-title {
   font-size: 1.25rem;
@@ -1382,4 +1404,3 @@ body {
     }
   }
 }
-
