@@ -7,7 +7,7 @@ An AI-powered blogging platform for discovering, reading, and managing trending 
 ## 🚀 Features
 
 - 🤖 **AI-Generated Content:** Automatically creates and publishes trending articles using Google Generative AI.
-- 📰 **Dynamic Article Feed:** Search, filter, and explore the latest trending topics.
+- 📰 **Dynamic Article Feed:** Search and explore the latest trending topics.
 - 💬 **Commenting System:** Engage with articles through a built-in comment section.
 - 🔒 **Secure Authentication:** User sign up, login, and admin controls with NextAuth and JWT.
 - 📈 **SEO Optimized:** Server-side rendering and meta tags for high discoverability.
@@ -31,7 +31,7 @@ An AI-powered blogging platform for discovering, reading, and managing trending 
 
 ### 1. Clone & Install
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/abhisheksharmacodes/trendwise.git
 cd trendwise
 ```
 
