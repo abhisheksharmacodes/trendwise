@@ -51,9 +51,9 @@ export default function ProfilePage() {
 
   if (!session) {
     return (
-      <div className="text-center">
+      <div className="text-left mt-4">
         <h1 className="text-2xl font-bold mb-4">Profile</h1>
-        <p>Please <span className="text-blue-600 cursor-pointer hover:underline active:underline" onClick={() => signIn("google")}>log in</span>to view your profile.</p>
+        <p>Please <span className="text-blue-600 text-center cursor-pointer hover:underline active:underline" onClick={() => signIn("google")}>log in</span> to view your profile.</p>
       </div>
     );
   }
@@ -61,8 +61,8 @@ export default function ProfilePage() {
   const user = session.user as ProfileUser;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold my-6">Profile</h1>
+    <div className="px-4 sm:px-0 mt-4">
+      <h1 className="text-2xl! sm:text-2xl! font-bold my-6">Profile</h1>
       
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-4 mb-4">
@@ -77,7 +77,7 @@ export default function ProfilePage() {
           )}
           <div>
             <h2 className="text-xl font-semibold">{user?.name}</h2>
-            <p className="text-gray-600">{user?.email}</p>
+            <p className="text-gray-600 indent-0!">{user?.email}</p>
           </div>
         </div>
         <button
@@ -89,7 +89,7 @@ export default function ProfilePage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Your Comments ({comments.length})</h2>
+        <h2 className="text-lg font-semibold mb-4">Your Comments ({comments.length})</h2>
         {loading ? (
           <p>Loading comments...</p>
         ) : comments.length === 0 ? (

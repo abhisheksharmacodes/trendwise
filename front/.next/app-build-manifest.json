@@ -16,6 +16,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/auth/[...nextauth]/route.js"
     ],
+    "/profile/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/profile/page.js"
+    ],
     "/article/[slug]/loading": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
