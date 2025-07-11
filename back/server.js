@@ -9,7 +9,7 @@ const Article = require('./models/Article');
 const trendingService = require('./services/trendingService');
 const connectDB = require('./utils/db');
 
-// Load environment variables
+
 dotenv.config();
 
 // Import routes
