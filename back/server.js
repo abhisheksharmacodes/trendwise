@@ -99,8 +99,15 @@ async function generateArticlesFromTrends() {
   }
 }
 
-// Schedule: Every hour, fetch trends and generate articles
-nodeCron.schedule('0 * * * *', generateArticlesFromTrends);
+// Expose a POST endpoint for Vercel Cron
+app.post('/api/cron/generate-article', async (req, res) => {
+  try {
+    await generateArticlesFromTrends();
+    res.status(200).json({ status: 'success' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
