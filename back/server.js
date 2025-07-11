@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const path = require('path');
-const nodeCron = require('node-cron');
 const contentService = require('./services/contentService');
 const Article = require('./models/Article');
 const trendingService = require('./services/trendingService');
